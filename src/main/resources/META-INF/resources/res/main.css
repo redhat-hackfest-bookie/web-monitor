@@ -1,0 +1,17 @@
+
+#mainNavBar {
+	margin-bottom: 10px;
+}
+
+#getPredictionButton {
+	width: 100%;
+}
+
+#predictionContainer {
+	display: none;
+}
+
+#requestsPerSportPercentageDiv {
+	height: 45px;
+	font-weight: bold;
+}
