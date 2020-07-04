@@ -1,6 +1,6 @@
 var sportListLocation = "/res/sports.json";
-var bookieServiceEndpoint = "http://hackfest-alexa-bookie-bookie.apps.cluster-ae02.ae02.sandbox1545.opentlc.com/api/v1/bookie/";
-var statsServiceEndpoint = "http://spring-data-jpa-quickstart-bookie.apps.cluster-ae02.ae02.sandbox1545.opentlc.com/";
+var bookieServiceEndpoint = "http://hackfest-alexa-bookie-alexa.apps.mw.consulting-rh-br.com/api/v1/bookie/";
+var statsServiceEndpoint = "http://spring-data-jpa-quickstart-alexa.apps.mw.consulting-rh-br.com/";
 
 var bookieContentJS = document.getElementById("bookieContent");
 var sportSelect = $('#sportSelect');
@@ -45,41 +45,41 @@ var spinner = new Spinner(spinnerOpts);
 console.log("Page loaded!");
 
 $(document).ready(function() {
-	
+
 	//read in sport list
 	jQuery.get(sportListLocation, function(data) {
 		startSpinner();
-		console.log("Read in sports data: " + data);	
-	
+		console.log("Read in sports data: " + data);
+
 		var sportsList = data.sports;
 		console.log("Got list of sports: " + sportsList);
-		
+
 		sportsList.forEach(function(sport, index) {
 			console.log("adding sport: " + sport);
-			
-			sportSelect.append($('<option/>', { 
+
+			sportSelect.append($('<option/>', {
         		value: sport,
-        		text : sport 
+        		text : sport
     		}));
 		});
 		stopSpinner();
 	});
-	
+
 	sportSelect.change(function() {
 		startSpinner();
 		populateTeamSelects();
 	});
-	
+
 	getPredictionButton.click(function() {
 		startSpinner();
 		getBookiePrediction();
 	});
-	
+
 	$(function () {
     	setInterval(reloadStatistics, 5000);
     });
     reloadStatistics();
-	
+
     console.log("ready!");
 });
 
@@ -95,7 +95,7 @@ function resetTeams(){
 	console.log("Resetting team selects.");
 	homeTeamSelect.empty().append('<option selected="selected"></option>');
 	awayTeamSelect.empty().append('<option selected="selected"></option>');
-	
+
 }
 
 function populateTeamSelects(){
@@ -103,30 +103,30 @@ function populateTeamSelects(){
 	resetTeams();
 	resetPrediction();
 	var selectedSport = sportSelect.find(":selected").text();//or val()?
-	
+
 	if(selectedSport == ""){
 		console.log("No sport selected.");
-		
+
 		stopSpinner();
 		return;
 	}
-	
+
 	console.log("Sport selected: \"" + selectedSport + "\"");
-	
+
 	makeCallToBookieService(selectedSport, function(data, status){
 		console.log("Got team data from service: " + data);
-		
+
 		data.forEach(function(team, index) {
 			var teamName = team.name;
 			console.log("adding team: " + teamName);
-			
-    		homeTeamSelect.append($('<option/>', { 
+
+    		homeTeamSelect.append($('<option/>', {
         		value: teamName,
-        		text : teamName 
+        		text : teamName
     		}));
-    		awayTeamSelect.append($('<option/>', { 
+    		awayTeamSelect.append($('<option/>', {
         		value: teamName,
-        		text : teamName 
+        		text : teamName
     		}));
 		});
 		stopSpinner();
@@ -136,11 +136,11 @@ function populateTeamSelects(){
 function getBookiePrediction(){
 	console.log("Getting the bookie prediction.");
 	resetPrediction();
-	
+
 	var selectedSport = sportSelect.find(":selected").text();
 	var selectedHome = homeTeamSelect.find(":selected").text();
 	var selectedAway = awayTeamSelect.find(":selected").text();
-	
+
 	if(selectedSport == ""){
 		console.log("No sport selected.");
 		updatePredictionResult("No sport selected.");
@@ -165,9 +165,9 @@ function getBookiePrediction(){
 		stopSpinner();
 		return;
 	}
-	
+
 	var request = selectedSport + "/" + selectedHome + "/" + selectedAway;
-	
+
 	makeCallToBookieService(request, function(response, status){
 		console.log("Got game result: " + response);
 
@@ -179,7 +179,7 @@ function getBookiePrediction(){
 	        var winningScore = "";
 	        var losingTeam = "";
 	        var losingScore = "";
-	
+
 	        if(response.home_score > response.away_score){
 	            winningTeam = response.home_team;
 	            winningScore = response.home_score;
@@ -191,10 +191,10 @@ function getBookiePrediction(){
 	            losingTeam = response.home_team;
 	            losingScore = response.home_score;
 	        }
-	        
+
 	        textOut = winningTeam + " will win against the " + losingTeam + " " + winningScore + " to " + losingScore + ".";
 	    }
-	    
+
 	    updatePredictionResult(textOut);
 	    stopSpinner();
 	});
@@ -213,7 +213,7 @@ function updatePredictionResult(resultString){
 function makeCallToBookieService(request, process){
 	var fullEndpoint = encodeURI(bookieServiceEndpoint + request);
 	console.log("Hitting bookie endpoint: " + fullEndpoint);
-	
+
 	$.get(fullEndpoint, process);
 }
 
@@ -224,9 +224,9 @@ function reloadStatistics(){
 		return;
 	}
 	lastReloadFinished = false;
-	
+
 	reloadSportStats();
-	
+
 	lastReloadFinished = true;
 }
 
@@ -237,26 +237,26 @@ function updateLastReloadTie(){
 function reloadSportStats(){
 	makeCallToStatsService("sports", function(sports, status){
 		console.log("Got sports stats result: " + sports);
-		
+
 		var total = 0;
 		sports.forEach(function(sport, index) {
 			total += sport.hitCount;
 		});
-		
+
 		totalRequestsSpan.text(total);
-		
+
 		requestsPerSportTableBody.empty();
 		requestsPerSportPercentageDiv.empty();
 		var lastColor = cycleColor("");
 		sports.forEach(function(sport, index) {
 			var percentage = (((sport.hitCount/total) * 100).toFixed(3));
 			requestsPerSportTableBody.append('<tr><td>'+sport.name+'</td><td>'+sport.hitCount+'</td><td>'+percentage+'</td></tr>');
-			
+
 			requestsPerSportPercentageDiv.append('<div class="progress-bar '+lastColor+' requestsPerSportPercentageSegment" role="progressbar" style="width: '+percentage+'%;" aria-valuenow="'+percentage+'" aria-valuemin="0" aria-valuemax="100">'+sport.name+'</div>');
-			
+
 			lastColor = cycleColor(lastColor);
 		});
-		
+
 		updateLastReloadTie();
 	});
 }
@@ -275,6 +275,6 @@ function cycleColor(last){
 function makeCallToStatsService(request, process){
 	var fullEndpoint = encodeURI(statsServiceEndpoint + request);
 	console.log("Hitting stats endpoint: " + fullEndpoint);
-	
+
 	$.get(fullEndpoint, process);
 }
